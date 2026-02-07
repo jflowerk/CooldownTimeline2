@@ -742,14 +742,20 @@ function CDTL2:RefreshIcon(cd)
 		
 	-- HIGHLIGHT BORDER
 	if cd.data["highlight"] then
-		if s["icons"]["highlight"]["border"]["style"] ~= "None" then
+		local style = s["icons"]["highlight"]["style"]
+		local needsBorder = (style == "BORDER" or style == "BORDER_FLASH")
+		local hasBorder = s["icons"]["highlight"]["border"]["style"] ~= "None"
+
+		if not needsBorder or hasBorder then
 			if not f.hl then
-				f.hl = CreateFrame("Frame", f:GetName().."_BD", UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
+				f.hl = CreateFrame("Frame", f:GetName().."_HL", UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
 				f.hl:SetParent(f)
 				f.hl.tx = f.hl:CreateTexture()
 			end
-			
-			CDTL2:SetBorder(f.hl, s["icons"]["highlight"]["border"])
+
+			if hasBorder then
+				CDTL2:SetBorder(f.hl, s["icons"]["highlight"]["border"])
+			end
 			f.hl:ClearAllPoints()
 			f.hl:SetPoint("CENTER", 0, 0)
 			f.hl:SetSize(s["icons"]["size"], s["icons"]["size"])
@@ -758,8 +764,7 @@ function CDTL2:RefreshIcon(cd)
 			f.hl:SetFrameLevel(f.hl:GetFrameLevel() + 1)
 
 			CDTL2:RemoveHighlights(f, s)
-			
-			local style = s["icons"]["highlight"]["style"]
+
 			if style == "GLOW" then
 				ActionButton_ShowOverlayGlow(f)
 			elseif style == "BORDER" then
@@ -776,39 +781,39 @@ function CDTL2:RefreshIcon(cd)
 					s["icons"]["highlight"]["border"]["color"]["b"],
 					s["icons"]["highlight"]["border"]["color"]["a"]
 				)
-				
+
 				f.hl.agBorderPulse = f.hl:CreateAnimationGroup()
 				f.hl.agBorderPulse:SetLooping("BOUNCE")
 				f.hl.agBorderPulse:SetToFinalAlpha(true)
-				
+
 				local borderPulse = f.hl.agBorderPulse:CreateAnimation("Alpha")
 				borderPulse:SetFromAlpha(0.2)
 				borderPulse:SetToAlpha(1)
 				borderPulse:SetDuration(0.5)
 				borderPulse:SetOrder(1)
-				
-				f.hl.agBorderPulse:Play()			
+
+				f.hl.agBorderPulse:Play()
 			elseif style == "FLASH" then
 				f.hl:ClearAllPoints()
 				f.hl:SetPoint("CENTER", 0, 0)
 				f.hl:SetSize(s["icons"]["size"], s["icons"]["size"])
 				f.hl.tx:SetColorTexture( 1, 1, 1, 1 )
-				
+
 				f.hl.agPulse = f.hl:CreateAnimationGroup()
 				f.hl.agPulse:SetLooping("BOUNCE")
 				f.hl.agPulse:SetToFinalAlpha(true)
-				
+
 				local borderPulse = f.hl.agPulse:CreateAnimation("Alpha")
 				borderPulse:SetFromAlpha(0.2)
 				borderPulse:SetToAlpha(1)
 				borderPulse:SetDuration(0.5)
 				borderPulse:SetOrder(1)
-				
+
 				f.hl.agPulse:Play()
 			else
 				CDTL2:RemoveHighlights(f, s)
 			end
-			
+
 			f.hl:Show()
 		else
 			if f.hl then
