@@ -835,9 +835,9 @@ function CDTL2:GetSpellInfo(id)
 		local data = C_Spell.GetSpellInfo(id)
 
 		if data then
-			name = CDTL2:SafeValue(data["name"], "")
-			icon = CDTL2:SafeValue(data["iconID"], 134400)
-			originalIconID = CDTL2:SafeValue(data["originalIconID"], 134400)
+			name = data["name"] or ""
+			icon = data["iconID"] or 134400
+			originalIconID = data["originalIconID"] or 134400
 		end
 	else
 		name, _, icon, _, _, _, originalIcon = GetSpellInfo(id)
@@ -856,10 +856,10 @@ function CDTL2:GetSpellCharges(id)
     	local data = C_Spell.GetSpellCharges(id)
 
 		if data then
-			currentCharges = CDTL2:SafeValue(data["currentCharges"], 0)
-			maxCharges = CDTL2:SafeValue(data["maxCharges"], 0)
-			cooldownStart = CDTL2:SafeValue(data["cooldownStart"], 0)
-			cooldownDuration = CDTL2:SafeValue(data["cooldownDuration"], 0)
+			currentCharges = data["currentCharges"] or 0
+			maxCharges = data["maxCharges"] or 0
+			cooldownStart = data["cooldownStart"] or 0
+			cooldownDuration = data["cooldownDuration"] or 0
 		end
 	else
 		currentCharges, maxCharges, cooldownStart, cooldownDuration, _ = GetSpellCharges(id)
@@ -877,9 +877,9 @@ function CDTL2:GetSpellCooldown(id)
     	local data = C_Spell.GetSpellCooldown(id)
 
 		if data then
-			start = CDTL2:SafeValue(data["startTime"], 0)
-			duration = CDTL2:SafeValue(data["duration"], 0)
-			enabled = CDTL2:SafeValue(data["isEnabled"], false)
+			start = data["startTime"] or 0
+			duration = data["duration"] or 0
+			enabled = data["isEnabled"] or false
 		end
 	else
 		start, duration, enabled, _  = GetSpellCooldown(id)
@@ -894,8 +894,6 @@ function CDTL2:GetSpellBaseCooldown(id)
 
 	if CDTL2.tocversion >= 120000 and C_Spell and C_Spell.GetSpellBaseCooldown then
 		cooldownMS, gcdMS = C_Spell.GetSpellBaseCooldown(id)
-		cooldownMS = CDTL2:SafeValue(cooldownMS, 0)
-		gcdMS = CDTL2:SafeValue(gcdMS, 0)
 	elseif GetSpellBaseCooldown then
 		cooldownMS, gcdMS = GetSpellBaseCooldown(id)
 	end
@@ -914,11 +912,7 @@ function CDTL2:GetInventoryItemCooldown(unit, slot)
 		start, duration, enabled = GetInventoryItemCooldown(unit, slot)
 	end
 
-	start = CDTL2:SafeValue(start, 0)
-	duration = CDTL2:SafeValue(duration, 0)
-	enabled = CDTL2:SafeValue(enabled, false)
-
-	return start, duration, enabled
+	return start or 0, duration or 0, enabled or false
 end
 
 function CDTL2:GetRuneCooldown(runeIndex)
@@ -932,11 +926,7 @@ function CDTL2:GetRuneCooldown(runeIndex)
 		start, duration, runeReady = GetRuneCooldown(runeIndex)
 	end
 
-	start = CDTL2:SafeValue(start, 0)
-	duration = CDTL2:SafeValue(duration, 0)
-	runeReady = CDTL2:SafeValue(runeReady, false)
-
-	return start, duration, runeReady
+	return start or 0, duration or 0, runeReady or false
 end
 
 function CDTL2:GetSpellSettings(name, type, specialCase, id)
@@ -1009,12 +999,12 @@ function CDTL2:GetUnitAura(unit, i, filter)
     	local data = C_UnitAuras.GetAuraDataByIndex(unit, i, filter)
 
 		if data then
-			name = CDTL2:SafeValue(data["name"], "")
-			spellID = CDTL2:SafeValue(data["spellId"], 0)
-			duration = CDTL2:SafeValue(data["duration"], 0)
-			icon = CDTL2:SafeValue(data["icon"], 0)
-			count = CDTL2:SafeValue(data["applications"], 0)
-			expirationTime = CDTL2:SafeValue(data["expirationTime"], 0)
+			name = data["name"] or ""
+			spellID = data["spellId"] or 0
+			duration = data["duration"] or 0
+			icon = data["icon"] or 0
+			count = data["applications"] or 0
+			expirationTime = data["expirationTime"] or 0
 		end
 	else
 		name, icon, count, _, duration, expirationTime, _, _, _, spellId = UnitAura(unit, i, filter)
@@ -1044,8 +1034,8 @@ function CDTL2:IsUsableSpell(id)
 
 	if CDTL2.tocversion >= 110000 then
     	usable, noPower = C_Spell.IsSpellUsable(id)
-		usable = CDTL2:SafeValue(usable, true)
-		noPower = CDTL2:SafeValue(noPower, false)
+		if usable == nil then usable = true end
+		if noPower == nil then noPower = false end
 	else
 		usable, noPower = IsUsableSpell(id)
 	end
