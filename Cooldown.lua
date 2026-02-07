@@ -766,7 +766,27 @@ function CDTL2:RefreshIcon(cd)
 			CDTL2:RemoveHighlights(f, s)
 
 			if style == "GLOW" then
-				ActionButton_ShowOverlayGlow(f)
+				if ActionButton_ShowOverlayGlow then
+					ActionButton_ShowOverlayGlow(f)
+				else
+					-- Fallback: use flash animation when OverlayGlow is unavailable (12.0+)
+					f.hl:ClearAllPoints()
+					f.hl:SetPoint("CENTER", 0, 0)
+					f.hl:SetSize(s["icons"]["size"], s["icons"]["size"])
+					f.hl.tx:SetColorTexture( 1, 1, 0.5, 1 )
+
+					f.hl.agPulse = f.hl:CreateAnimationGroup()
+					f.hl.agPulse:SetLooping("BOUNCE")
+					f.hl.agPulse:SetToFinalAlpha(true)
+
+					local glowPulse = f.hl.agPulse:CreateAnimation("Alpha")
+					glowPulse:SetFromAlpha(0.1)
+					glowPulse:SetToAlpha(0.6)
+					glowPulse:SetDuration(0.4)
+					glowPulse:SetOrder(1)
+
+					f.hl.agPulse:Play()
+				end
 			elseif style == "BORDER" then
 				f.hl:SetBackdropBorderColor(
 					s["icons"]["highlight"]["border"]["color"]["r"],

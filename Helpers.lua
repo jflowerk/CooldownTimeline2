@@ -1270,7 +1270,9 @@ function CDTL2:RemoveHighlights(f, s)
 		f.hl.agPulse:Stop()
 	end
 	
-	ActionButton_HideOverlayGlow(f)
+	if ActionButton_HideOverlayGlow then
+		ActionButton_HideOverlayGlow(f)
+	end
 	f.hl:SetBackdropBorderColor(
 		s["icons"]["highlight"]["border"]["color"]["r"],
 		s["icons"]["highlight"]["border"]["color"]["g"],
