@@ -812,12 +812,8 @@ function CDTL2:GetSpellLink(id)
 end
 
 -- Helper: safe replacement for "value or fallback" that handles secret values.
--- In 12.0.0, secret values cannot be used in boolean tests (if/or/and),
--- so we must check issecretvalue() first before any boolean operation.
--- Helper: safe replacement for "value or fallback" that handles secret values.
 -- In 12.0.0, secret values cannot be used in boolean tests, arithmetic, or
--- comparisons, so we must return the fallback instead. The addon cannot compute
--- timeline positions from opaque secret values.
+-- comparisons, so we must return the fallback instead.
 local function safeOr(value, fallback)
 	if issecretvalue and issecretvalue(value) then
 		return fallback
