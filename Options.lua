@@ -2448,7 +2448,7 @@ private.GetFilterSet = function(t, o)
 
 								local cDefaults = CDTL2.db.profile.global["customs"]
 								CDTL2.custom["enabled"] = cDefaults["showByDefault"]
-								CDTL2.custom["highlight"] = false
+								CDTL2.custom["highlight"] = true
 								CDTL2.custom["pinned"] = false
 								CDTL2.custom["ignored"] = false
 								CDTL2.custom["lane"] = cDefaults["defaultLane"]

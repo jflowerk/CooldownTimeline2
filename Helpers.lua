@@ -139,7 +139,7 @@ function CDTL2:CheckEdgeCases(spellName)
 				s["barFrame"] = CDTL2.db.profile.global["spells"]["defaultBar"]
 				s["readyFrame"] = CDTL2.db.profile.global["spells"]["defaultReady"]
 				s["enabled"] = CDTL2.db.profile.global["spells"]["showByDefault"]
-				s["highlight"] = false
+				s["highlight"] = true
 				s["pinned"] = false
 				s["usedBy"] = { CDTL2.player["guid"] }
 				
@@ -195,7 +195,7 @@ function CDTL2:CheckEdgeCases(spellName)
 				s["barFrame"] = CDTL2.db.profile.global["spells"]["defaultBar"]
 				s["readyFrame"] = CDTL2.db.profile.global["spells"]["defaultReady"]
 				s["enabled"] = CDTL2.db.profile.global["spells"]["showByDefault"]
-				s["highlight"] = false
+				s["highlight"] = true
 				s["pinned"] = false
 				s["usedBy"] = { CDTL2.player["guid"] }
 				
@@ -283,7 +283,7 @@ function CDTL2:CheckEdgeCases(spellName)
 							s["barFrame"] = CDTL2.db.profile.global["spells"]["defaultBar"]
 							s["readyFrame"] = CDTL2.db.profile.global["spells"]["defaultReady"]
 							s["enabled"] = CDTL2.db.profile.global["spells"]["showByDefault"]
-							s["highlight"] = false
+							s["highlight"] = true
 							s["pinned"] = false
 							s["usedBy"] = { CDTL2.player["guid"] }
 							
@@ -365,7 +365,7 @@ function CDTL2:CheckEdgeCases(spellName)
 					s["barFrame"] = CDTL2.db.profile.global["spells"]["defaultBar"]
 					s["readyFrame"] = CDTL2.db.profile.global["spells"]["defaultReady"]
 					s["enabled"] = CDTL2.db.profile.global["spells"]["showByDefault"]
-					s["highlight"] = false
+					s["highlight"] = true
 					s["pinned"] = false
 					s["usedBy"] = { CDTL2.player["guid"] }
 					
@@ -602,7 +602,7 @@ function CDTL2:GetItemSpell(id)
 				s["barFrame"] = CDTL2.db.profile.global["items"]["defaultBar"]
 				s["readyFrame"] = CDTL2.db.profile.global["items"]["defaultReady"]
 				s["enabled"] = CDTL2.db.profile.global["items"]["showByDefault"]
-				s["highlight"] = false
+				s["highlight"] = true
 				s["pinned"] = false
 			
 			local spellName, icon, originalIcon = CDTL2:GetSpellInfo(id)
@@ -637,7 +637,7 @@ function CDTL2:GetItemSpell(id)
 					s["barFrame"] = CDTL2.db.profile.global["items"]["defaultBar"]
 					s["readyFrame"] = CDTL2.db.profile.global["items"]["defaultReady"]
 					s["enabled"] = CDTL2.db.profile.global["items"]["showByDefault"]
-					s["highlight"] = false
+					s["highlight"] = true
 					s["pinned"] = false
 				
 				local spellName, icon, originalIcon = CDTL2:GetSpellInfo(id)
@@ -764,7 +764,7 @@ function CDTL2:GetTestTableData(testType, bCD, number)
     data["testType"] = testType
     data["enabled"] = true
     data["pinned"] = false
-    data["highlight"] = false
+    data["highlight"] = true
     data["ignored"] = false
 
 	data["lane"] = CDTL2.db.profile.global[testType]["defaultLane"]
@@ -1430,7 +1430,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 						s["barFrame"] = CDTL2.db.profile.global["spells"]["defaultBar"]
 						s["readyFrame"] = CDTL2.db.profile.global["spells"]["defaultReady"]
 						s["enabled"] = CDTL2.db.profile.global["spells"]["showByDefault"]
-						s["highlight"] = false
+						s["highlight"] = true
 						s["pinned"] = false
 						s["usedBy"] = { CDTL2.player["guid"] }
 						s["setCustomCD"] = false
@@ -1519,7 +1519,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 							s["barFrame"] = CDTL2.db.profile.global["spells"]["defaultBar"]
 							s["readyFrame"] = CDTL2.db.profile.global["spells"]["defaultReady"]
 							s["enabled"] = CDTL2.db.profile.global["spells"]["showByDefault"]
-							s["highlight"] = false
+							s["highlight"] = true
 							s["pinned"] = false
 							s["usedBy"] = { CDTL2.player["guid"] }
 							s["setCustomCD"] = false
@@ -1591,7 +1591,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 									s["barFrame"] = CDTL2.db.profile.global["items"]["defaultBar"]
 									s["readyFrame"] = CDTL2.db.profile.global["items"]["defaultReady"]
 									s["enabled"] = CDTL2.db.profile.global["items"]["showByDefault"]
-									s["highlight"] = false
+									s["highlight"] = true
 									s["pinned"] = false
 									s["usedBy"] = { CDTL2.player["guid"] }
 									
@@ -1656,7 +1656,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 										s["barFrame"] = CDTL2.db.profile.global["items"]["defaultBar"]
 										s["readyFrame"] = CDTL2.db.profile.global["items"]["defaultReady"]
 										s["enabled"] = CDTL2.db.profile.global["items"]["showByDefault"]
-										s["highlight"] = false
+										s["highlight"] = true
 										s["pinned"] = false
 										s["usedBy"] = { CDTL2.player["guid"] }
 										

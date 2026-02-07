@@ -2695,7 +2695,7 @@ function CDTL2:COMBAT_LOG_EVENT_UNFILTERED()
 					else
 						s = CDTL2:AuraExists("player", spellName)
 						if s then
-							s["highlight"] = false
+							s["highlight"] = true
 							s["pinned"] = false
 							
 							s["usedBy"] = { CDTL2.player["guid"] }
@@ -2810,7 +2810,7 @@ function CDTL2:COMBAT_LOG_EVENT_UNFILTERED()
 					}
 					
 					s["enabled"] = CDTL2.db.profile.global["offensives"]["showByDefault"]
-					s["highlight"] = false
+					s["highlight"] = true
 					s["pinned"] = false
 					
 					s["usedBy"] = { CDTL2.player["guid"] }
@@ -2951,7 +2951,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				s["barFrame"] = CDTL2.db.profile.global["spells"]["defaultBar"]
 				s["readyFrame"] = CDTL2.db.profile.global["spells"]["defaultReady"]
 				s["enabled"] = CDTL2.db.profile.global["spells"]["showByDefault"]
-				s["highlight"] = false
+				s["highlight"] = true
 				s["pinned"] = false
 				s["usedBy"] = { CDTL2.player["guid"] }
 				s["setCustomCD"] = false
@@ -3078,7 +3078,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 									end
 
 									s["icon"] = icon
-									s["highlight"] = false
+									s["highlight"] = true
 									s["pinned"] = false
 									s["setCustomCD"] = false
 									
@@ -3157,7 +3157,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				s["barFrame"] = CDTL2.db.profile.global["petspells"]["defaultBar"]
 				s["readyFrame"] = CDTL2.db.profile.global["petspells"]["defaultReady"]
 				s["enabled"] = CDTL2.db.profile.global["petspells"]["showByDefault"]
-				s["highlight"] = false
+				s["highlight"] = true
 				s["pinned"] = false
 				s["usedBy"] = { CDTL2.player["guid"] }
 				s["setCustomCD"] = false
@@ -3422,7 +3422,7 @@ function CDTL2:RUNE_POWER_UPDATE(...)
 			s["barFrame"] = CDTL2.db.profile.global["runes"]["defaultBar"]
 			s["readyFrame"] = CDTL2.db.profile.global["runes"]["defaultReady"]
 			s["enabled"] = CDTL2.db.profile.global["runes"]["showByDefault"]
-			s["highlight"] = false
+			s["highlight"] = true
 			s["pinned"] = false
 			
 			local start, duration, runeReady = CDTL2:GetRuneCooldown(runeIndex)
