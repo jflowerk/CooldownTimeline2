@@ -2930,18 +2930,18 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				--local currentCharges, maxCharges, _, cooldownDuration, _ = GetSpellCharges(spellID)
 				local currentCharges, maxCharges, cooldownStart, cooldownDuration  = CDTL2:GetSpellCharges(spellID)
 				local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
-		
-				if cooldownDuration ~= nil and cooldownDuration ~= 0 then
+
+				if cooldownDuration ~= nil and not CDTL2:IsSecretValue(cooldownDuration) and cooldownDuration ~= 0 then
 					cooldownMS = cooldownDuration * 1000
 				end
-		
+
 				s["id"] = spellID
 				s["name"] = spellName
 				--s["rank"] = rank
 				s["bCD"] = cooldownMS
 				s["type"] = "spells"
-		
-				if maxCharges ~= 0 then
+
+				if maxCharges ~= nil and not CDTL2:IsSecretValue(maxCharges) and maxCharges ~= 0 then
 					s["charges"] = maxCharges
 					s["bCD"] = cooldownMS
 				end
@@ -2959,12 +2959,14 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				local link, _ = CDTL2:GetSpellLink(spellID)
 				s["link"] = link
 				
-				if s["bCD"] / 1000 > 3 and s["bCD"] / 1000 <= CDTL2.db.profile.global["spells"]["ignoreThreshold"] then
+				if CDTL2:IsSecretValue(s["bCD"]) then
+					s["ignored"] = false
+				elseif s["bCD"] / 1000 > 3 and s["bCD"] / 1000 <= CDTL2.db.profile.global["spells"]["ignoreThreshold"] then
 					s["ignored"] = false
 				else
 					s["ignored"] = true
 				end
-				
+
 				table.insert(CDTL2.db.profile.tables["spells"], s)
 				
 				if not s["ignored"] then
@@ -3057,22 +3059,22 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 									--local currentCharges, maxCharges, _, cooldownDuration, _ = GetSpellCharges(spellID)
 									local currentCharges, maxCharges, cooldownStart, cooldownDuration = CDTL2:GetSpellCharges(spellID)
 									local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
-									
-									if cooldownDuration ~= nil and cooldownDuration ~= 0 then
+
+									if cooldownDuration ~= nil and not CDTL2:IsSecretValue(cooldownDuration) and cooldownDuration ~= 0 then
 										cooldownMS = cooldownDuration * 1000
 									end
 
 									if CDTL2.db.profile.global["debugMode"] then
-										CDTL2:Print("OTHER_ADDING: "..spellName.." - "..spellID.." - "..cooldownMS.." - "..tostring(CDTL2.player["guid"]))
+										CDTL2:Print("OTHER_ADDING: "..spellName.." - "..spellID.." - "..tostring(cooldownMS).." - "..tostring(CDTL2.player["guid"]))
 									end
 
 									local s = {}
-									
+
 									s["id"] = spellID
 									s["name"] = spellName
 									s["type"] = "detected"
-							
-									if maxCharges then
+
+									if maxCharges ~= nil and not CDTL2:IsSecretValue(maxCharges) and maxCharges ~= 0 then
 										s["charges"] = maxCharges
 										s["bCD"] = cooldownMS
 									end
@@ -3136,18 +3138,18 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				--local currentCharges, maxCharges, _, cooldownDuration, _ = GetSpellCharges(spellID)
 				local currentCharges, maxCharges, cooldownStart, cooldownDuration = CDTL2:GetSpellCharges(spellID)
 				local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
-		
-				if cooldownDuration ~= nil and cooldownDuration ~= 0 then
+
+				if cooldownDuration ~= nil and not CDTL2:IsSecretValue(cooldownDuration) and cooldownDuration ~= 0 then
 					cooldownMS = cooldownDuration * 1000
 				end
-		
+
 				s["id"] = spellID
 				s["name"] = spellName
 				--s["rank"] = rank
 				s["bCD"] = cooldownMS
 				s["type"] = "petspells"
-		
-				if maxCharges then
+
+				if maxCharges ~= nil and not CDTL2:IsSecretValue(maxCharges) and maxCharges ~= 0 then
 					s["charges"] = maxCharges
 					s["bCD"] = cooldownMS
 				end
@@ -3426,11 +3428,15 @@ function CDTL2:RUNE_POWER_UPDATE(...)
 			s["pinned"] = false
 			
 			local start, duration, runeReady = CDTL2:GetRuneCooldown(runeIndex)
-			
-			s["bCD"] = duration * 1000
+
+			if not CDTL2:IsSecretValue(duration) then
+				s["bCD"] = duration * 1000
+			end
 			s["usedBy"] = { CDTL2.player["guid"] }
-			
-			if s["bCD"] / 1000 > 3 and s["bCD"] / 1000 <= CDTL2.db.profile.global["runes"]["ignoreThreshold"] then
+
+			if CDTL2:IsSecretValue(s["bCD"]) then
+				s["ignored"] = false
+			elseif s["bCD"] / 1000 > 3 and s["bCD"] / 1000 <= CDTL2.db.profile.global["runes"]["ignoreThreshold"] then
 				s["ignored"] = false
 			else
 				s["ignored"] = true

@@ -1140,8 +1140,8 @@ private.CooldownUpdate = function(f, elapsed)
 				else
 					--local start, duration, enabled, _ = GetSpellCooldown(d["id"])
 					local start, duration, enabled = CDTL2:GetSpellCooldown(d["id"])
-					
-					if enabled == 0 then
+
+					if not CDTL2:IsSecretValue(enabled) and enabled == 0 then
 						-- Placeholder
 
 					else
@@ -1160,7 +1160,9 @@ private.CooldownUpdate = function(f, elapsed)
 
 									--local start, duration, enabled, _ = GetSpellCooldown(d["id"])
 									local start, duration, enabled = CDTL2:GetSpellCooldown(d["id"])
-									d["currentCD"] = start + duration - GetTime()
+									if not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) then
+										d["currentCD"] = start + duration - GetTime()
+									end
 								end
 							end
 						end
@@ -1182,7 +1184,7 @@ private.CooldownUpdate = function(f, elapsed)
 							--local start, duration, enabled = CDTL2:GetSpellCooldown(d["id"])
 							--d["currentCD"] = start + duration - GetTime()
 
-							if enabled == 0 or enabled == false then
+							if not CDTL2:IsSecretValue(enabled) and (enabled == 0 or enabled == false) then
 								CDTL2:SetSpellData(d["name"], "spells", "oaf", true)
 								d["oaf"] = true
 							end
@@ -1198,7 +1200,9 @@ private.CooldownUpdate = function(f, elapsed)
 								
 
 								local start, duration, enabled = CDTL2:GetSpellCooldown(d["id"])
-								d["currentCD"] = start + duration - GetTime()
+								if not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) then
+									d["currentCD"] = start + duration - GetTime()
+								end
 
 								--if d["name"] == "Primal Rage" or d["name"] == "Implosive Trap" then
 									--CDTL2:Print(d["name"].." - "..d["currentCD"].." : "..tostring(duration))
@@ -1224,18 +1228,22 @@ private.CooldownUpdate = function(f, elapsed)
 						local _, spellID = GetItemSpell(d["itemID"])
 						if spellID == d["id"] then
 							local start, duration, enabled = CDTL2:GetInventoryItemCooldown("player", slot)
-							
-							d["baseCD"] = duration
-							CDTL2:SetSpellData(d["name"], "items", "bCD", duration * 1000)
+
+							if not CDTL2:IsSecretValue(duration) then
+								d["baseCD"] = duration
+								CDTL2:SetSpellData(d["name"], "items", "bCD", duration * 1000)
+							end
 						end
 					else
 						local start, duration, enabled = C_Container.GetItemCooldown(d["itemID"])
-						
-						d["baseCD"] = duration
-						CDTL2:SetSpellData(d["name"], "items", "bCD", duration * 1000)
+
+						if not CDTL2:IsSecretValue(duration) then
+							d["baseCD"] = duration
+							CDTL2:SetSpellData(d["name"], "items", "bCD", duration * 1000)
+						end
 					end
-					
-					if d["baseCD"] > 3 and d["baseCD"] <= CDTL2.db.profile.global["items"]["ignoreThreshold"] then
+
+					if not CDTL2:IsSecretValue(d["baseCD"]) and d["baseCD"] > 3 and d["baseCD"] <= CDTL2.db.profile.global["items"]["ignoreThreshold"] then
 						d["ignored"] = false
 						CDTL2:SetSpellData(d["name"], "items", "ignored", false)
 					else
@@ -1260,14 +1268,14 @@ private.CooldownUpdate = function(f, elapsed)
 							--d["currentCD"] = start + duration - GetTime()
 
 							local start, duration, enabled = CDTL2:GetInventoryItemCooldown("player", slot)
-							if start and duration then
+							if start ~= nil and duration ~= nil and not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) then
 								d["baseCD"] = duration
 								d["currentCD"] = start + duration - GetTime()
 							end
 						end
 					else
 						local start, duration, enabled = C_Container.GetItemCooldown(d["itemID"])
-						if duration and start then
+						if start ~= nil and duration ~= nil and not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) then
 							d["baseCD"] = duration
 							d["currentCD"] = start + duration - GetTime()
 						end
