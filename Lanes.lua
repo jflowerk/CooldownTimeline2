@@ -640,7 +640,7 @@ private.CalcTracking = function(f, s, t, elapsed)
 
 	if t == "GCD" then
 		local start, duration, enabled = CDTL2:GetSpellCooldown(8921)	-- Spell ID for Moonfire, but any spell without a cooldown can be used
-		local cooldownMS, gcdMS = GetSpellBaseCooldown(8921)			-- Spell ID for Moonfire, but any spell without a cooldown can be used
+		local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(8921)		-- Spell ID for Moonfire, but any spell without a cooldown can be used
 		
 		local timeLeft = (start + duration) - GetTime()
 		position = ( timeLeft / (gcdMS / 1000))

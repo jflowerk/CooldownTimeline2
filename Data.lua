@@ -157,24 +157,24 @@ end
 
 function CDTL2:ScanSpellData(class)
 	for _, spell in pairs(private.GetRacialData()) do
-		local baseCD, _ = GetSpellBaseCooldown(spell["id"])
+		local baseCD, _ = CDTL2:GetSpellBaseCooldown(spell["id"])
 		CDTL2:Print(spell["id"]..",,"..tostring(baseCD))
 	end
-	
+
 	for _, spell in pairs(private.GetOtherData()) do
-		local baseCD, _ = GetSpellBaseCooldown(spell["id"])
+		local baseCD, _ = CDTL2:GetSpellBaseCooldown(spell["id"])
 		CDTL2:Print(spell["id"]..",,"..tostring(baseCD))
 	end
-	
+
 	for _, spell in pairs(private.GetClassData(class)) do
-		local baseCD, _ = GetSpellBaseCooldown(spell["id"])
+		local baseCD, _ = CDTL2:GetSpellBaseCooldown(spell["id"])
 		--CDTL2:Print(spell["id"]..",,"..tostring(baseCD))
 	end
-	
+
 	if class == "DEATHKNIGHT" or class == "HUNTER" or class == "WARLOCK" then
 		for _, pspell in pairs(private.GetPetData(class)) do
-			local pbaseCD, _ = GetSpellBaseCooldown(pspell["id"])
-			
+			local pbaseCD, _ = CDTL2:GetSpellBaseCooldown(pspell["id"])
+
 			--CDTL2:Print(pspell["id"]..",,"..pbaseCD)
 		end
 	end

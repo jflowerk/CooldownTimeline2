@@ -14,8 +14,8 @@ CDTL2.GUI = LibStub("AceGUI-3.0")
 local _, _, _, tocversion = GetBuildInfo()
 CDTL2.tocversion = tocversion
 
-CDTL2.version = "2.6"
-CDTL2.noticeVersion = "2.6"
+CDTL2.version = "3.0"
+CDTL2.noticeVersion = "3.0"
 CDTL2.cdUID = 999
 CDTL2.discordlink = "https://discord.gg/4s6xUSq3qQ"
 CDTL2.lanes = {}
@@ -2929,7 +2929,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				
 				--local currentCharges, maxCharges, _, cooldownDuration, _ = GetSpellCharges(spellID)
 				local currentCharges, maxCharges, cooldownStart, cooldownDuration  = CDTL2:GetSpellCharges(spellID)
-				local cooldownMS, gcdMS = GetSpellBaseCooldown(spellID)
+				local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 		
 				if cooldownDuration ~= nil and cooldownDuration ~= 0 then
 					cooldownMS = cooldownDuration * 1000
@@ -3056,7 +3056,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 								--if CDTL2.db.profile.global["customDetection"] then
 									--local currentCharges, maxCharges, _, cooldownDuration, _ = GetSpellCharges(spellID)
 									local currentCharges, maxCharges, cooldownStart, cooldownDuration = CDTL2:GetSpellCharges(spellID)
-									local cooldownMS, gcdMS = GetSpellBaseCooldown(spellID)
+									local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 									
 									if cooldownDuration ~= nil and cooldownDuration ~= 0 then
 										cooldownMS = cooldownDuration * 1000
@@ -3088,7 +3088,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 									table.insert(CDTL2.db.profile.tables["detected"], s)
 							end
 						else
-							local cooldownMS, gcdMS = GetSpellBaseCooldown(spellID)
+							local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 								
 							if CDTL2.db.profile.global["debugMode"] then
 								CDTL2:Print("OTHER_SKIPPED: "..tostring(spellName).." - "..tostring(spellID).." - "..tostring(cooldownMS).." - "..tostring(CDTL2.player["guid"]))
@@ -3135,7 +3135,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 			
 				--local currentCharges, maxCharges, _, cooldownDuration, _ = GetSpellCharges(spellID)
 				local currentCharges, maxCharges, cooldownStart, cooldownDuration = CDTL2:GetSpellCharges(spellID)
-				local cooldownMS, gcdMS = GetSpellBaseCooldown(spellID)
+				local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 		
 				if cooldownDuration ~= nil and cooldownDuration ~= 0 then
 					cooldownMS = cooldownDuration * 1000
@@ -3425,7 +3425,7 @@ function CDTL2:RUNE_POWER_UPDATE(...)
 			s["highlight"] = false
 			s["pinned"] = false
 			
-			local start, duration, runeReady = GetRuneCooldown(runeIndex)
+			local start, duration, runeReady = CDTL2:GetRuneCooldown(runeIndex)
 			
 			s["bCD"] = duration * 1000
 			s["usedBy"] = { CDTL2.player["guid"] }

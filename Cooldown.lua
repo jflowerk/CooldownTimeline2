@@ -1198,7 +1198,7 @@ private.CooldownUpdate = function(f, elapsed)
 					if tinker then
 						local _, spellID = GetItemSpell(d["itemID"])
 						if spellID == d["id"] then
-							local start, duration, enabled = GetInventoryItemCooldown("player", slot)
+							local start, duration, enabled = CDTL2:GetInventoryItemCooldown("player", slot)
 							
 							d["baseCD"] = duration
 							CDTL2:SetSpellData(d["name"], "items", "bCD", duration * 1000)
@@ -1230,11 +1230,11 @@ private.CooldownUpdate = function(f, elapsed)
 					if tinker then
 						local _, spellID = GetItemSpell(d["itemID"])
 						if spellID == d["id"] then
-							--local start, duration, enabled = GetInventoryItemCooldown("player", slot)
+							--local start, duration, enabled = CDTL2:GetInventoryItemCooldown("player", slot)
 							--d["baseCD"] = duration
 							--d["currentCD"] = start + duration - GetTime()
 
-							local start, duration, enabled = GetInventoryItemCooldown("player", slot)
+							local start, duration, enabled = CDTL2:GetInventoryItemCooldown("player", slot)
 							if start and duration then
 								d["baseCD"] = duration
 								d["currentCD"] = start + duration - GetTime()
