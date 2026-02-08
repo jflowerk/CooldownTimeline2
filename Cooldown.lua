@@ -9,6 +9,13 @@ private.autohidePollRate = 5
 private.dynamicTextPollRate = 10
 private.timeTextPollRate = 2
 
+-- Cached local reference for secret value checking (performance optimization)
+-- Avoids global lookup + method dispatch on every call in hot loops
+local _issecretvalue = issecretvalue
+local function isSecret(value)
+	return _issecretvalue ~= nil and _issecretvalue(value)
+end
+
 function CDTL2:CreateCooldown(UID, cdType, cdData)
 	local fName = "CDTL2_CD_"..UID
 	local f = CreateFrame("Frame", fName, UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
@@ -1141,7 +1148,7 @@ private.CooldownUpdate = function(f, elapsed)
 					--local start, duration, enabled, _ = GetSpellCooldown(d["id"])
 					local start, duration, enabled = CDTL2:GetSpellCooldown(d["id"])
 
-					if not CDTL2:IsSecretValue(enabled) and enabled == 0 then
+					if not isSecret(enabled) and enabled == 0 then
 						-- Placeholder
 
 					else
@@ -1160,7 +1167,7 @@ private.CooldownUpdate = function(f, elapsed)
 
 									--local start, duration, enabled, _ = GetSpellCooldown(d["id"])
 									local start, duration, enabled = CDTL2:GetSpellCooldown(d["id"])
-									if not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) then
+									if not isSecret(start) and not isSecret(duration) then
 										d["currentCD"] = start + duration - GetTime()
 									end
 								end
@@ -1184,7 +1191,7 @@ private.CooldownUpdate = function(f, elapsed)
 							--local start, duration, enabled = CDTL2:GetSpellCooldown(d["id"])
 							--d["currentCD"] = start + duration - GetTime()
 
-							if not CDTL2:IsSecretValue(enabled) and (enabled == 0 or enabled == false) then
+							if not isSecret(enabled) and (enabled == 0 or enabled == false) then
 								CDTL2:SetSpellData(d["name"], "spells", "oaf", true)
 								d["oaf"] = true
 							end
@@ -1200,7 +1207,7 @@ private.CooldownUpdate = function(f, elapsed)
 								
 
 								local start, duration, enabled = CDTL2:GetSpellCooldown(d["id"])
-								if not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) then
+								if not isSecret(start) and not isSecret(duration) then
 									d["currentCD"] = start + duration - GetTime()
 								end
 
@@ -1229,7 +1236,7 @@ private.CooldownUpdate = function(f, elapsed)
 						if spellID == d["id"] then
 							local start, duration, enabled = CDTL2:GetInventoryItemCooldown("player", slot)
 
-							if not CDTL2:IsSecretValue(duration) then
+							if not isSecret(duration) then
 								d["baseCD"] = duration
 								CDTL2:SetSpellData(d["name"], "items", "bCD", duration * 1000)
 							end
@@ -1237,13 +1244,13 @@ private.CooldownUpdate = function(f, elapsed)
 					else
 						local start, duration, enabled = C_Container.GetItemCooldown(d["itemID"])
 
-						if not CDTL2:IsSecretValue(duration) then
+						if not isSecret(duration) then
 							d["baseCD"] = duration
 							CDTL2:SetSpellData(d["name"], "items", "bCD", duration * 1000)
 						end
 					end
 
-					if not CDTL2:IsSecretValue(d["baseCD"]) and d["baseCD"] > 3 and d["baseCD"] <= CDTL2.db.profile.global["items"]["ignoreThreshold"] then
+					if not isSecret(d["baseCD"]) and d["baseCD"] > 3 and d["baseCD"] <= CDTL2.db.profile.global["items"]["ignoreThreshold"] then
 						d["ignored"] = false
 						CDTL2:SetSpellData(d["name"], "items", "ignored", false)
 					else
@@ -1268,14 +1275,14 @@ private.CooldownUpdate = function(f, elapsed)
 							--d["currentCD"] = start + duration - GetTime()
 
 							local start, duration, enabled = CDTL2:GetInventoryItemCooldown("player", slot)
-							if start ~= nil and duration ~= nil and not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) then
+							if start ~= nil and duration ~= nil and not isSecret(start) and not isSecret(duration) then
 								d["baseCD"] = duration
 								d["currentCD"] = start + duration - GetTime()
 							end
 						end
 					else
 						local start, duration, enabled = C_Container.GetItemCooldown(d["itemID"])
-						if start ~= nil and duration ~= nil and not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) then
+						if start ~= nil and duration ~= nil and not isSecret(start) and not isSecret(duration) then
 							d["baseCD"] = duration
 							d["currentCD"] = start + duration - GetTime()
 						end

@@ -14,6 +14,13 @@ CDTL2.GUI = LibStub("AceGUI-3.0")
 local _, _, _, tocversion = GetBuildInfo()
 CDTL2.tocversion = tocversion
 
+-- Cached local reference for secret value checking (performance optimization)
+-- Avoids global lookup + method dispatch on every call in hot loops
+local _issecretvalue = issecretvalue
+local function isSecret(value)
+	return _issecretvalue ~= nil and _issecretvalue(value)
+end
+
 CDTL2.version = "3.0"
 CDTL2.noticeVersion = "3.0"
 CDTL2.cdUID = 999
@@ -2931,7 +2938,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				local currentCharges, maxCharges, cooldownStart, cooldownDuration  = CDTL2:GetSpellCharges(spellID)
 				local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 
-				if cooldownDuration ~= nil and not CDTL2:IsSecretValue(cooldownDuration) and cooldownDuration ~= 0 then
+				if cooldownDuration ~= nil and not isSecret(cooldownDuration) and cooldownDuration ~= 0 then
 					cooldownMS = cooldownDuration * 1000
 				end
 
@@ -2941,7 +2948,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				s["bCD"] = cooldownMS
 				s["type"] = "spells"
 
-				if maxCharges ~= nil and not CDTL2:IsSecretValue(maxCharges) and maxCharges ~= 0 then
+				if maxCharges ~= nil and not isSecret(maxCharges) and maxCharges ~= 0 then
 					s["charges"] = maxCharges
 					s["bCD"] = cooldownMS
 				end
@@ -2959,7 +2966,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				local link, _ = CDTL2:GetSpellLink(spellID)
 				s["link"] = link
 				
-				if CDTL2:IsSecretValue(s["bCD"]) then
+				if isSecret(s["bCD"]) then
 					s["ignored"] = false
 				elseif s["bCD"] / 1000 > 3 and s["bCD"] / 1000 <= CDTL2.db.profile.global["spells"]["ignoreThreshold"] then
 					s["ignored"] = false
@@ -3060,7 +3067,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 									local currentCharges, maxCharges, cooldownStart, cooldownDuration = CDTL2:GetSpellCharges(spellID)
 									local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 
-									if cooldownDuration ~= nil and not CDTL2:IsSecretValue(cooldownDuration) and cooldownDuration ~= 0 then
+									if cooldownDuration ~= nil and not isSecret(cooldownDuration) and cooldownDuration ~= 0 then
 										cooldownMS = cooldownDuration * 1000
 									end
 
@@ -3074,7 +3081,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 									s["name"] = spellName
 									s["type"] = "detected"
 
-									if maxCharges ~= nil and not CDTL2:IsSecretValue(maxCharges) and maxCharges ~= 0 then
+									if maxCharges ~= nil and not isSecret(maxCharges) and maxCharges ~= 0 then
 										s["charges"] = maxCharges
 										s["bCD"] = cooldownMS
 									end
@@ -3139,7 +3146,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				local currentCharges, maxCharges, cooldownStart, cooldownDuration = CDTL2:GetSpellCharges(spellID)
 				local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 
-				if cooldownDuration ~= nil and not CDTL2:IsSecretValue(cooldownDuration) and cooldownDuration ~= 0 then
+				if cooldownDuration ~= nil and not isSecret(cooldownDuration) and cooldownDuration ~= 0 then
 					cooldownMS = cooldownDuration * 1000
 				end
 
@@ -3149,7 +3156,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 				s["bCD"] = cooldownMS
 				s["type"] = "petspells"
 
-				if maxCharges ~= nil and not CDTL2:IsSecretValue(maxCharges) and maxCharges ~= 0 then
+				if maxCharges ~= nil and not isSecret(maxCharges) and maxCharges ~= 0 then
 					s["charges"] = maxCharges
 					s["bCD"] = cooldownMS
 				end
@@ -3429,12 +3436,12 @@ function CDTL2:RUNE_POWER_UPDATE(...)
 			
 			local start, duration, runeReady = CDTL2:GetRuneCooldown(runeIndex)
 
-			if not CDTL2:IsSecretValue(duration) then
+			if not isSecret(duration) then
 				s["bCD"] = duration * 1000
 			end
 			s["usedBy"] = { CDTL2.player["guid"] }
 
-			if CDTL2:IsSecretValue(s["bCD"]) then
+			if isSecret(s["bCD"]) then
 				s["ignored"] = false
 			elseif s["bCD"] / 1000 > 3 and s["bCD"] / 1000 <= CDTL2.db.profile.global["runes"]["ignoreThreshold"] then
 				s["ignored"] = false

@@ -10,6 +10,13 @@ private.stackingPollRate = 5
 private.dynamicTextPollRate = 10
 private.timeTextPollRate = 2
 
+-- Cached local reference for secret value checking (performance optimization)
+-- Avoids global lookup + method dispatch on every call in hot loops
+local _issecretvalue = issecretvalue
+local function isSecret(value)
+	return _issecretvalue ~= nil and _issecretvalue(value)
+end
+
 function CDTL2:CreateLanes()
 	local lane1Enabled = CDTL2.db.profile.lanes["lane1"]["enabled"]
 	local lane2Enabled = CDTL2.db.profile.lanes["lane2"]["enabled"]
@@ -642,7 +649,7 @@ private.CalcTracking = function(f, s, t, elapsed)
 		local start, duration, enabled = CDTL2:GetSpellCooldown(8921)	-- Spell ID for Moonfire, but any spell without a cooldown can be used
 		local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(8921)		-- Spell ID for Moonfire, but any spell without a cooldown can be used
 
-		if not CDTL2:IsSecretValue(start) and not CDTL2:IsSecretValue(duration) and gcdMS ~= 0 then
+		if not isSecret(start) and not isSecret(duration) and gcdMS ~= 0 then
 			local timeLeft = (start + duration) - GetTime()
 			position = ( timeLeft / (gcdMS / 1000))
 		end

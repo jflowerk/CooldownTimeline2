@@ -5,6 +5,13 @@
 
 local private = {}
 
+-- Cached local reference for secret value checking (performance optimization)
+-- Avoids global lookup + method dispatch on every call in hot loops
+local _issecretvalue = issecretvalue
+local function isSecret(value)
+	return _issecretvalue ~= nil and _issecretvalue(value)
+end
+
 function CDTL2:AddUsedBy(type, id, guid)
 	for _, data in pairs(CDTL2.db.profile.tables[type]) do
 		if data["id"] == id then
@@ -822,7 +829,7 @@ end
 -- Helper: safely extract a non-numeric value (name, icon), returning fallback if secret or nil
 function CDTL2:SafeValue(value, fallback)
 	if value == nil then return fallback end
-	if CDTL2:IsSecretValue(value) then return fallback end
+	if isSecret(value) then return fallback end
 	return value
 end
 
@@ -903,8 +910,8 @@ function CDTL2:GetSpellBaseCooldown(id)
 
 	-- Base cooldown values (tooltip data) are typically not secret,
 	-- but guard against it just in case
-	if CDTL2:IsSecretValue(cooldownMS) then cooldownMS = 0 end
-	if CDTL2:IsSecretValue(gcdMS) then gcdMS = 0 end
+	if isSecret(cooldownMS) then cooldownMS = 0 end
+	if isSecret(gcdMS) then gcdMS = 0 end
 
 	return cooldownMS, gcdMS
 end
@@ -1213,7 +1220,7 @@ function CDTL2:OnTalentChanges()
 			if isKnown or isKnownOrOverridesKnown then
 				--local start, duration, enabled, _ = GetSpellCooldown(spellID)
 				local start, duration, enabled = CDTL2:GetSpellCooldown(spellID)
-				if CDTL2:IsSecretValue(duration) or (duration and duration > 1.5) then
+				if isSecret(duration) or (duration and duration > 1.5) then
 					CDTL2:SendToLane(cd)
 					CDTL2:SendToBarFrame(cd)
 				end
@@ -1311,7 +1318,7 @@ function CDTL2:ScanSharedSpellCooldown(initialName, initialDuration)
 		if spell["name"] ~= initialName then
 			--local start, duration, enabled, _ = GetSpellCooldown(spell["id"])
 			local start, duration, enabled = CDTL2:GetSpellCooldown(spell["id"])
-			if CDTL2:IsSecretValue(duration) or CDTL2:IsSecretValue(initialDuration) then
+			if isSecret(duration) or isSecret(initialDuration) then
 				-- Can't compare secret values, skip shared cooldown detection
 			elseif math.abs(initialDuration - duration) < 0.2 then
 				if duration > 1.5 then
@@ -1347,7 +1354,7 @@ function CDTL2:ScanSharedSpellCooldown(initialName, initialDuration)
 								usedBy = { CDTL2.player["guid"] },
 							}
 
-							if CDTL2:IsSecretValue(s["bCD"]) then
+							if isSecret(s["bCD"]) then
 								s["ignored"] = false
 							elseif s["bCD"] / 1000 > 3 and s["bCD"] / 1000 < CDTL2.db.profile.global["spells"]["ignoreThreshold"] then
 								s["ignored"] = false
@@ -1383,7 +1390,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 
 				local start, duration, enabled = CDTL2:GetSpellCooldown(spellID)
 
-				if CDTL2:IsSecretValue(duration) or duration > 1.5 then
+				if isSecret(duration) or duration > 1.5 then
 					if CDTL2.db.profile.global["debugMode"] then
 						CDTL2:Print("COOLINGDOWN: "..tostring(spellName).." - "..spellID)
 					end
@@ -1418,7 +1425,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 						local currentCharges, maxCharges, cooldownDuration = CDTL2:GetSpellCharges(spellID)
 						local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 				
-						if cooldownDuration ~= nil and not CDTL2:IsSecretValue(cooldownDuration) then
+						if cooldownDuration ~= nil and not isSecret(cooldownDuration) then
 							cooldownMS = cooldownDuration * 1000
 						end
 
@@ -1428,7 +1435,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 						s["bCD"] = cooldownMS
 						s["type"] = "spells"
 
-						if maxCharges ~= nil and not CDTL2:IsSecretValue(maxCharges) and maxCharges ~= 0 then
+						if maxCharges ~= nil and not isSecret(maxCharges) and maxCharges ~= 0 then
 							s["charges"] = maxCharges
 							s["bCD"] = cooldownMS
 						end
@@ -1446,7 +1453,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 						local link, _ = CDTL2:GetSpellLink(spellID)
 						s["link"] = link
 						
-						if CDTL2:IsSecretValue(s["bCD"]) then
+						if isSecret(s["bCD"]) then
 							s["ignored"] = false
 						elseif s["bCD"] / 1000 > 3 and s["bCD"] / 1000 <= CDTL2.db.profile.global["spells"]["ignoreThreshold"] then
 							s["ignored"] = false
@@ -1474,7 +1481,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 				if spellID then
 					local start, duration, enabled = CDTL2:GetSpellCooldown(spellID)
 
-					if CDTL2:IsSecretValue(duration) or duration > 1.5 then
+					if isSecret(duration) or duration > 1.5 then
 						if CDTL2.db.profile.global["debugMode"] then
 							CDTL2:Print("COOLINGDOWN: "..tostring(spellName).." - "..spellID)
 						end
@@ -1509,7 +1516,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 							local currentCharges, maxCharges, cooldownDuration = CDTL2:GetSpellCharges(spellID)
 							local cooldownMS, gcdMS = CDTL2:GetSpellBaseCooldown(spellID)
 
-							if cooldownDuration ~= nil and not CDTL2:IsSecretValue(cooldownDuration) then
+							if cooldownDuration ~= nil and not isSecret(cooldownDuration) then
 								cooldownMS = cooldownDuration * 1000
 							end
 
@@ -1519,7 +1526,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 							s["bCD"] = cooldownMS
 							s["type"] = "spells"
 
-							if maxCharges ~= nil and not CDTL2:IsSecretValue(maxCharges) and maxCharges ~= 0 then
+							if maxCharges ~= nil and not isSecret(maxCharges) and maxCharges ~= 0 then
 								s["charges"] = maxCharges
 								s["bCD"] = cooldownMS
 							end
@@ -1537,7 +1544,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 							local link, _ = CDTL2:GetSpellLink(spellID)
 							s["link"] = link
 							
-							if CDTL2:IsSecretValue(s["bCD"]) then
+							if isSecret(s["bCD"]) then
 								s["ignored"] = false
 							elseif s["bCD"] / 1000 > 3 and s["bCD"] / 1000 <= CDTL2.db.profile.global["spells"]["ignoreThreshold"] then
 								s["ignored"] = false
@@ -1580,7 +1587,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 				if CDTL2:IsValidItem(itemID) then
 					local start, duration, enabled = C_Container.GetItemCooldown(itemId)
 
-					if CDTL2:IsSecretValue(duration) or (duration and duration > 1.5) then
+					if isSecret(duration) or (duration and duration > 1.5) then
 						if CDTL2:GetExistingCooldown(spellName, "items") then
 							--CDTL2:Print("    EXISTING FOUND: "..spell["id"].." - "..spell["name"])
 						else
@@ -1597,7 +1604,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 								s = {}
 									s["name"] = spellName
 									s["id"] = spellID
-									if not CDTL2:IsSecretValue(duration) then
+									if not isSecret(duration) then
 										s["bCD"] = duration * 1000
 									else
 										s["bCD"] = 0
@@ -1618,7 +1625,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 									s["link"] = item:GetItemLink()
 								end)
 								
-								if CDTL2:IsSecretValue(duration) then
+								if isSecret(duration) then
 									s["ignored"] = false
 								elseif duration > 3 and duration < CDTL2.db.profile.global["items"]["ignoreThreshold"] then
 									s["ignored"] = false
@@ -1651,7 +1658,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 					if CDTL2:IsValidItem(itemId) then
 						local start, duration, enabled = C_Container.GetItemCooldown(itemId)
 
-						if CDTL2:IsSecretValue(duration) or (duration and duration > 1.5) then
+						if isSecret(duration) or (duration and duration > 1.5) then
 							if CDTL2:GetExistingCooldown(spellName, "items") then
 								--CDTL2:Print("    EXISTING FOUND: "..spell["id"].." - "..spell["name"])
 							else
@@ -1668,7 +1675,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 									s = {}
 										s["name"] = spellName
 										s["id"] = spellID
-										if not CDTL2:IsSecretValue(duration) then
+										if not isSecret(duration) then
 											s["bCD"] = duration * 1000
 										else
 											s["bCD"] = 0
@@ -1689,7 +1696,7 @@ function CDTL2:ScanCurrentCooldowns(class, race)
 										s["link"] = item:GetItemLink()
 									end)
 									
-									if CDTL2:IsSecretValue(duration) then
+									if isSecret(duration) then
 										s["ignored"] = false
 									elseif duration > 3 and duration < CDTL2.db.profile.global["items"]["ignoreThreshold"] then
 										s["ignored"] = false
