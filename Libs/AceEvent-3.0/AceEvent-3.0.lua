@@ -12,7 +12,7 @@
 -- @release $Id: AceEvent-3.0.lua 1202 2019-05-15 23:11:22Z nevcairiel $
 local CallbackHandler = LibStub("CallbackHandler-1.0")
 
-local MAJOR, MINOR = "AceEvent-3.0", 5
+local MAJOR, MINOR = "AceEvent-3.0", 6
 local AceEvent = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceEvent then return end
@@ -22,7 +22,8 @@ local pairs = pairs
 
 AceEvent.frame = AceEvent.frame or CreateFrame("Frame", "AceEvent30Frame") -- our event frame
 AceEvent.embeds = AceEvent.embeds or {} -- what objects embed this lib
-AceEvent.pendingRegister = AceEvent.pendingRegister or {} -- events queued during combat lockdown
+AceEvent.pendingRegister = AceEvent.pendingRegister or {} -- events queued for deferred registration
+AceEvent.registerScheduled = AceEvent.registerScheduled or false
 
 -- APIs and registry for blizzard events, using CallbackHandler lib
 if not AceEvent.events then
@@ -30,13 +31,26 @@ if not AceEvent.events then
 		"RegisterEvent", "UnregisterEvent", "UnregisterAllEvents")
 end
 
--- WoW 12.0+: RegisterEvent is protected during combat lockdown.
--- Queue registrations during combat and process them when combat ends.
+-- WoW 12.0+: frame:RegisterEvent() is protected during combat lockdown
+-- AND during certain restricted execution contexts (e.g. ADDON_ACTION_FORBIDDEN
+-- event handlers) where InCombatLockdown() may return false but the call still fails.
+-- Solution: ALWAYS defer event registration to the next frame via C_Timer.After(0),
+-- which runs in a clean, unrestricted execution context.
+local function ProcessPendingRegistrations()
+	AceEvent.registerScheduled = false
+	if not InCombatLockdown() and next(AceEvent.pendingRegister) then
+		for eventname in pairs(AceEvent.pendingRegister) do
+			AceEvent.frame:RegisterEvent(eventname)
+		end
+		wipe(AceEvent.pendingRegister)
+	end
+end
+
 function AceEvent.events:OnUsed(target, eventname)
-	if InCombatLockdown() then
-		AceEvent.pendingRegister[eventname] = true
-	else
-		AceEvent.frame:RegisterEvent(eventname)
+	AceEvent.pendingRegister[eventname] = true
+	if not AceEvent.registerScheduled then
+		AceEvent.registerScheduled = true
+		C_Timer.After(0, ProcessPendingRegistrations)
 	end
 end
 
@@ -131,7 +145,7 @@ local events = AceEvent.events
 AceEvent.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 AceEvent.frame:SetScript("OnEvent", function(this, event, ...)
-	-- When combat ends, register any events that were queued during combat
+	-- When combat ends, process any pending event registrations
 	if event == "PLAYER_REGEN_ENABLED" and next(AceEvent.pendingRegister) then
 		for eventname in pairs(AceEvent.pendingRegister) do
 			AceEvent.frame:RegisterEvent(eventname)
