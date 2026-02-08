@@ -21,55 +21,6 @@ local function isSecret(value)
 	return _issecretvalue ~= nil and _issecretvalue(value)
 end
 
--- WoW 12.0+: frame:RegisterEvent() is protected during combat lockdown
--- AND restricted execution contexts (ADDON_ACTION_FORBIDDEN handlers etc.)
--- where InCombatLockdown() returns false but the call still fails.
--- Patch AceEvent here (after all libraries loaded) to ALWAYS defer
--- RegisterEvent to next frame via C_Timer.After(0) for a clean context.
-do
-	local AceEvent = LibStub("AceEvent-3.0")
-	if AceEvent and AceEvent.frame and AceEvent.events then
-		AceEvent.pendingRegister = AceEvent.pendingRegister or {}
-		AceEvent.registerScheduled = AceEvent.registerScheduled or false
-
-		local function ProcessPendingRegistrations()
-			AceEvent.registerScheduled = false
-			if not InCombatLockdown() and next(AceEvent.pendingRegister) then
-				for eventname in pairs(AceEvent.pendingRegister) do
-					AceEvent.frame:RegisterEvent(eventname)
-				end
-				wipe(AceEvent.pendingRegister)
-			end
-		end
-
-		function AceEvent.events:OnUsed(target, eventname)
-			AceEvent.pendingRegister[eventname] = true
-			if not AceEvent.registerScheduled then
-				AceEvent.registerScheduled = true
-				C_Timer.After(0, ProcessPendingRegistrations)
-			end
-		end
-
-		function AceEvent.events:OnUnused(target, eventname)
-			AceEvent.pendingRegister[eventname] = nil
-			if not InCombatLockdown() then
-				AceEvent.frame:UnregisterEvent(eventname)
-			end
-		end
-
-		AceEvent.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
-
-		AceEvent.frame:SetScript("OnEvent", function(this, event, ...)
-			if event == "PLAYER_REGEN_ENABLED" and next(AceEvent.pendingRegister) then
-				for eventname in pairs(AceEvent.pendingRegister) do
-					AceEvent.frame:RegisterEvent(eventname)
-				end
-				wipe(AceEvent.pendingRegister)
-			end
-			AceEvent.events:Fire(event, ...)
-		end)
-	end
-end
 
 CDTL2.version = "3.0"
 CDTL2.noticeVersion = "3.0"
