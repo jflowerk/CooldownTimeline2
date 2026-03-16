@@ -3485,34 +3485,30 @@ function CDTL2:RUNE_UPDATED()
 	end)
 end
 
-function CDTL2:PLAYER_ENTERING_WORLD()	
-	local turnOn = CDTL2:DetermineOnOff()
-	
-	if turnOn then
-		CDTL2:TurnOn()
-	else
-		CDTL2:TurnOff()
-	end
+-- Helper to toggle on/off in a clean (untainted) execution context
+-- This prevents ADDON_ACTION_FORBIDDEN errors when registering events
+-- from within a potentially tainted event handler chain
+local function DetermineAndToggle()
+	C_Timer.After(0, function()
+		local turnOn = CDTL2:DetermineOnOff()
+		if turnOn then
+			CDTL2:TurnOn()
+		else
+			CDTL2:TurnOff()
+		end
+	end)
 end
 
-function CDTL2:GROUP_JOINED()	
-	local turnOn = CDTL2:DetermineOnOff()
-	
-	if turnOn then
-		CDTL2:TurnOn()
-	else
-		CDTL2:TurnOff()
-	end
+function CDTL2:PLAYER_ENTERING_WORLD()
+	DetermineAndToggle()
 end
 
-function CDTL2:GROUP_LEFT()	
-	local turnOn = CDTL2:DetermineOnOff()
-	
-	if turnOn then
-		CDTL2:TurnOn()
-	else
-		CDTL2:TurnOff()
-	end
+function CDTL2:GROUP_JOINED()
+	DetermineAndToggle()
+end
+
+function CDTL2:GROUP_LEFT()
+	DetermineAndToggle()
 end
 
 function CDTL2:SPELLS_CHANGED(...)
