@@ -2114,6 +2114,21 @@ function CDTL2:OnEnable()
 	--self:RegisterEvent("SPELLS_CHANGED")
 	--self:RegisterEvent("ENCOUNTER_END")
 
+	-- Pre-register all detection events during safe loading context
+	-- to avoid ADDON_ACTION_FORBIDDEN from tainted execution paths
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:RegisterEvent("SPELL_UPDATE_CHARGES")
+	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+	self:RegisterEvent("ITEM_LOCK_CHANGED")
+	self:RegisterEvent("PLAYER_REGEN_DISABLED")
+	self:RegisterEvent("PLAYER_REGEN_ENABLED")
+	self:RegisterEvent("UNIT_POWER_FREQUENT")
+	self:RegisterEvent("UNIT_POWER_UPDATE")
+	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+	if CDTL2.tocversion < 20000 then
+		self:RegisterEvent("RUNE_UPDATED")
+	end
+
 	CDTL2:Cleanup()
 
 	CDTL2:CreateLanes()
@@ -2616,6 +2631,7 @@ function CDTL2:CreateTestingFrame()
 end
 
 function CDTL2:COMBAT_LOG_EVENT_UNFILTERED()
+	if not CDTL2.enabled then return end
 	local _, subevent, _, sourceGUID, sourceName, _, _, destGUID, destName, _, _ = CombatLogGetCurrentEventInfo()
 	
 	if subevent == "SPELL_AURA_APPLIED" then
@@ -2898,6 +2914,7 @@ function CDTL2:COMBAT_LOG_EVENT_UNFILTERED()
 end
 
 function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
+	if not CDTL2.enabled then return end
 	local temp, unitTarget, castGUID, spellID = ...
 
 	if unitTarget == "player" then
@@ -3195,6 +3212,7 @@ function CDTL2:UNIT_SPELLCAST_SUCCEEDED(...)
 end
 
 function CDTL2:ITEM_LOCK_CHANGED(...)
+	if not CDTL2.enabled then return end
 	-- Detect item lock cooldowns
 	-- Most commonly trinkets being equipped, that will begin a 30 second cooldown
 	local _, bagOrSlotIndex, slotIndex = ...
@@ -3246,6 +3264,7 @@ function CDTL2:ITEM_LOCK_CHANGED(...)
 end
 
 function CDTL2:PLAYER_REGEN_DISABLED()
+	if not CDTL2.enabled then return end
 	CDTL2.combat = true
 	
 	local ready1Enabled = CDTL2.db.profile.ready["ready1"]["enabled"]
@@ -3266,6 +3285,7 @@ function CDTL2:PLAYER_REGEN_DISABLED()
 end
 
 function CDTL2:PLAYER_REGEN_ENABLED()
+	if not CDTL2.enabled then return end
 	CDTL2.combat = false
 	
 	if CDTL2_Ready_1 then
@@ -3299,10 +3319,12 @@ end
 end]]--
 
 function CDTL2:SPELL_UPDATE_CHARGES()
+	if not CDTL2.enabled then return end
 	--CDTL2:Print("SPELL_UPDATE_CHARGES")
 end
 
 function CDTL2:UNIT_POWER_FREQUENT(...)
+	if not CDTL2.enabled then return end
 	local _, unitTarget, powerType = ...
 	
 	if unitTarget == "player" and powerType == "MANA" then
@@ -3351,6 +3373,7 @@ function CDTL2:UNIT_POWER_FREQUENT(...)
 end
 
 function CDTL2:UNIT_POWER_UPDATE(...)
+	if not CDTL2.enabled then return end
 	local _, unitTarget, powerType = ...
 	
 	if unitTarget == "player" and powerType == "ENERGY" then
@@ -3378,6 +3401,7 @@ function CDTL2:UNIT_POWER_UPDATE(...)
 end
 
 function CDTL2:RUNE_POWER_UPDATE(...)
+	if not CDTL2.enabled then return end
 	local runeIndex, added = ...
 	--local _, runeIndex, added = ...
 	
@@ -3468,6 +3492,7 @@ function CDTL2:RUNE_POWER_UPDATE(...)
 end
 
 function CDTL2:ACTIVE_TALENT_GROUP_CHANGED()
+	if not CDTL2.enabled then return end
 	C_Timer.After(2, function()
 		CDTL2:OnTalentChanges()
 	end)
@@ -3480,35 +3505,37 @@ function CDTL2:TRAIT_CONFIG_UPDATED()
 end
 
 function CDTL2:RUNE_UPDATED()
+	if not CDTL2.enabled then return end
 	C_Timer.After(2, function()
 		CDTL2:OnTalentChanges()
 	end)
 end
 
--- Helper to toggle on/off in a clean (untainted) execution context
--- This prevents ADDON_ACTION_FORBIDDEN errors when registering events
--- from within a potentially tainted event handler chain
-local function DetermineAndToggle()
-	C_Timer.After(0, function()
-		local turnOn = CDTL2:DetermineOnOff()
-		if turnOn then
-			CDTL2:TurnOn()
-		else
-			CDTL2:TurnOff()
-		end
-	end)
-end
-
 function CDTL2:PLAYER_ENTERING_WORLD()
-	DetermineAndToggle()
+	local turnOn = CDTL2:DetermineOnOff()
+	if turnOn then
+		CDTL2:TurnOn()
+	else
+		CDTL2:TurnOff()
+	end
 end
 
 function CDTL2:GROUP_JOINED()
-	DetermineAndToggle()
+	local turnOn = CDTL2:DetermineOnOff()
+	if turnOn then
+		CDTL2:TurnOn()
+	else
+		CDTL2:TurnOff()
+	end
 end
 
 function CDTL2:GROUP_LEFT()
-	DetermineAndToggle()
+	local turnOn = CDTL2:DetermineOnOff()
+	if turnOn then
+		CDTL2:TurnOn()
+	else
+		CDTL2:TurnOff()
+	end
 end
 
 function CDTL2:SPELLS_CHANGED(...)
@@ -3539,31 +3566,12 @@ function CDTL2:DetermineOnOff()
 	return turnOn
 end
 
-function CDTL2:TurnOn()	
+function CDTL2:TurnOn()
 	if not CDTL2.enabled then
 		if CDTL2.db.profile.global["debugMode"] then
 			CDTL2:Print("ENABLING DETECTION")
 		end
-	
-		CDTL2:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		CDTL2:RegisterEvent("SPELL_UPDATE_CHARGES")
-		CDTL2:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-		CDTL2:RegisterEvent("ITEM_LOCK_CHANGED")
-		CDTL2:RegisterEvent("PLAYER_REGEN_DISABLED")
-		CDTL2:RegisterEvent("PLAYER_REGEN_ENABLED")
-		CDTL2:RegisterEvent("UNIT_POWER_FREQUENT")
-		CDTL2:RegisterEvent("UNIT_POWER_UPDATE")
 
-		CDTL2:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-		
-		if CDTL2.tocversion >= 110000 then
-			--CDTL2:RegisterEvent("TRAIT_CONFIG_UPDATED")
-		end
-
-		if CDTL2.tocversion < 20000 then
-			CDTL2:RegisterEvent("RUNE_UPDATED")
-		end
-		
 		CDTL2.enabled = true
 	end
 end
@@ -3573,26 +3581,7 @@ function CDTL2:TurnOff()
 		if CDTL2.db.profile.global["debugMode"] then
 			CDTL2:Print("DISABLING DETECTION")
 		end
-		
-		CDTL2:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		CDTL2:UnregisterEvent("SPELL_UPDATE_CHARGES")
-		CDTL2:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-		CDTL2:UnregisterEvent("ITEM_LOCK_CHANGED")
-		CDTL2:UnregisterEvent("PLAYER_REGEN_DISABLED")
-		CDTL2:UnregisterEvent("PLAYER_REGEN_ENABLED")
-		CDTL2:UnregisterEvent("UNIT_POWER_FREQUENT")
-		CDTL2:UnregisterEvent("UNIT_POWER_UPDATE")
 
-		CDTL2:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-		
-		if CDTL2.tocversion >= 110000 then
-			--CDTL2:UnregisterEvent("TRAIT_CONFIG_UPDATED")
-		end
-
-		if CDTL2.tocversion < 20000 then
-			CDTL2:UnregisterEvent("RUNE_UPDATED")
-		end
-		
 		CDTL2.enabled = false
 	end
 end
