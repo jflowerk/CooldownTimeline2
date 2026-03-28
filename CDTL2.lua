@@ -21,20 +21,22 @@ local CDTL2EventFrame = CreateFrame("Frame")
 local function CDTL2RegisterEvent(event)
 	CDTL2EventFrame:RegisterEvent(event)
 end
-CDTL2RegisterEvent("PLAYER_ENTERING_WORLD")
-CDTL2RegisterEvent("GROUP_JOINED")
-CDTL2RegisterEvent("GROUP_LEFT")
-CDTL2RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-CDTL2RegisterEvent("SPELL_UPDATE_CHARGES")
-CDTL2RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-CDTL2RegisterEvent("ITEM_LOCK_CHANGED")
-CDTL2RegisterEvent("PLAYER_REGEN_DISABLED")
-CDTL2RegisterEvent("PLAYER_REGEN_ENABLED")
-CDTL2RegisterEvent("UNIT_POWER_FREQUENT")
-CDTL2RegisterEvent("UNIT_POWER_UPDATE")
-CDTL2RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+local coreEvents = {
+	"PLAYER_ENTERING_WORLD",
+	"GROUP_JOINED",
+	"GROUP_LEFT",
+	"COMBAT_LOG_EVENT_UNFILTERED",
+	"SPELL_UPDATE_CHARGES",
+	"UNIT_SPELLCAST_SUCCEEDED",
+	"ITEM_LOCK_CHANGED",
+	"PLAYER_REGEN_DISABLED",
+	"PLAYER_REGEN_ENABLED",
+	"UNIT_POWER_FREQUENT",
+	"UNIT_POWER_UPDATE",
+	"ACTIVE_TALENT_GROUP_CHANGED",
+}
 if tocversion < 20000 then
-	CDTL2RegisterEvent("RUNE_UPDATED")
+	table.insert(coreEvents, "RUNE_UPDATED")
 end
 CDTL2EventFrame:SetScript("OnEvent", function(self, event, ...)
 	if CDTL2[event] then
@@ -2135,8 +2137,14 @@ function CDTL2:OnInitialize()
 end
 
 function CDTL2:OnEnable()
-	-- Events are registered at file load time (top of file) on CDTL2EventFrame.
-	-- No event registration needed here.
+	-- Delay event registration until addon enable to avoid protected-call
+	-- taint during load chains triggered by Blizzard UI modules.
+	if not CDTL2.eventsRegistered then
+		for _, eventName in ipairs(coreEvents) do
+			CDTL2RegisterEvent(eventName)
+		end
+		CDTL2.eventsRegistered = true
+	end
 
 	CDTL2:Cleanup()
 
@@ -2176,8 +2184,9 @@ function CDTL2:OnEnable()
 
 		CDTL2:ScanCurrentCooldowns(CDTL2.player["class"], CDTL2.player["race"])
 
-		if CDTL2.player["class"] == "DEATHKNIGHT" then
-			CDTL2EventFrame:RegisterEvent("RUNE_POWER_UPDATE")
+		if CDTL2.player["class"] == "DEATHKNIGHT" and not CDTL2.runeEventRegistered then
+			CDTL2RegisterEvent("RUNE_POWER_UPDATE")
+			CDTL2.runeEventRegistered = true
 		end
 		
 		CDTL2:RefreshLane(1)
