@@ -2137,13 +2137,18 @@ function CDTL2:OnInitialize()
 end
 
 function CDTL2:OnEnable()
-	-- Delay event registration until addon enable to avoid protected-call
-	-- taint during load chains triggered by Blizzard UI modules.
+	-- Defer event registration to escape tainted execution context.
+	-- AceAddon (via AdiBagsEx) can enable addons during a tainted
+	-- ADDON_LOADED handler triggered by Blizzard's LoadAddOn chain.
+	-- C_Timer.After(0) fires in the same frame batch (still tainted),
+	-- but a real delay (0.5s) fires in a new frame with clean context.
 	if not CDTL2.eventsRegistered then
-		for _, eventName in ipairs(coreEvents) do
-			CDTL2RegisterEvent(eventName)
-		end
 		CDTL2.eventsRegistered = true
+		C_Timer.After(0.5, function()
+			for _, eventName in ipairs(coreEvents) do
+				CDTL2RegisterEvent(eventName)
+			end
+		end)
 	end
 
 	CDTL2:Cleanup()
