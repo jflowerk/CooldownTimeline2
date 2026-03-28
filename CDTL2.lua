@@ -16,11 +16,12 @@ CDTL2.tocversion = tocversion
 
 -- Private event frame to bypass AceEvent's shared frame (AceEvent30Frame).
 -- When loaded via Blizzard's LoadAddOn chain (e.g. RaidFrame_LoadUI), the
--- entire file execution is tainted. pcall suppresses ADDON_ACTION_FORBIDDEN
--- warnings while RegisterEvent still succeeds (it's a warning, not a block).
+-- entire file execution is tainted, causing ADDON_ACTION_FORBIDDEN on
+-- RegisterEvent calls. securecallfunction executes in a secure context
+-- that prevents taint detection.
 local CDTL2EventFrame = CreateFrame("Frame")
 local function CDTL2RegisterEvent(event)
-	pcall(CDTL2EventFrame.RegisterEvent, CDTL2EventFrame, event)
+	securecallfunction(CDTL2EventFrame.RegisterEvent, CDTL2EventFrame, event)
 end
 CDTL2RegisterEvent("PLAYER_ENTERING_WORLD")
 CDTL2RegisterEvent("GROUP_JOINED")
@@ -2178,7 +2179,7 @@ function CDTL2:OnEnable()
 		CDTL2:ScanCurrentCooldowns(CDTL2.player["class"], CDTL2.player["race"])
 
 		if CDTL2.player["class"] == "DEATHKNIGHT" then
-			CDTL2RegisterEvent("RUNE_POWER_UPDATE")
+			securecallfunction(CDTL2EventFrame.RegisterEvent, CDTL2EventFrame, "RUNE_POWER_UPDATE")
 		end
 		
 		CDTL2:RefreshLane(1)
