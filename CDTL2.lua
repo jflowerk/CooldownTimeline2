@@ -15,27 +15,28 @@ local _, _, _, tocversion = GetBuildInfo()
 CDTL2.tocversion = tocversion
 
 -- Private event frame to bypass AceEvent's shared frame (AceEvent30Frame).
--- The shared frame can become tainted by other addons (ActionSounds, AdiBagsEx, etc.),
--- causing ADDON_ACTION_FORBIDDEN when RegisterEvent is called on it.
--- Events are registered here at file load time (via TOC), which is always a safe context.
--- OnEnable can run in a tainted context (e.g. RaidFrame_LoadUI -> LoadAddOn) and even
--- C_Timer.After(0) does not escape the taint, so registration must happen at load time.
+-- Events are registered on the first OnUpdate tick, which always runs in a
+-- clean untainted context. File load time, OnEnable, and C_Timer.After(0)
+-- can all run tainted when triggered by Blizzard's LoadAddOn chain.
 local CDTL2EventFrame = CreateFrame("Frame")
-CDTL2EventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-CDTL2EventFrame:RegisterEvent("GROUP_JOINED")
-CDTL2EventFrame:RegisterEvent("GROUP_LEFT")
-CDTL2EventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-CDTL2EventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
-CDTL2EventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-CDTL2EventFrame:RegisterEvent("ITEM_LOCK_CHANGED")
-CDTL2EventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
-CDTL2EventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-CDTL2EventFrame:RegisterEvent("UNIT_POWER_FREQUENT")
-CDTL2EventFrame:RegisterEvent("UNIT_POWER_UPDATE")
-CDTL2EventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-if tocversion < 20000 then
-	CDTL2EventFrame:RegisterEvent("RUNE_UPDATED")
-end
+CDTL2EventFrame:SetScript("OnUpdate", function(self)
+	self:SetScript("OnUpdate", nil)
+	self:RegisterEvent("PLAYER_ENTERING_WORLD")
+	self:RegisterEvent("GROUP_JOINED")
+	self:RegisterEvent("GROUP_LEFT")
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:RegisterEvent("SPELL_UPDATE_CHARGES")
+	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+	self:RegisterEvent("ITEM_LOCK_CHANGED")
+	self:RegisterEvent("PLAYER_REGEN_DISABLED")
+	self:RegisterEvent("PLAYER_REGEN_ENABLED")
+	self:RegisterEvent("UNIT_POWER_FREQUENT")
+	self:RegisterEvent("UNIT_POWER_UPDATE")
+	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+	if tocversion < 20000 then
+		self:RegisterEvent("RUNE_UPDATED")
+	end
+end)
 CDTL2EventFrame:SetScript("OnEvent", function(self, event, ...)
 	if CDTL2[event] then
 		CDTL2[event](CDTL2, event, ...)
