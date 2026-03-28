@@ -14,6 +14,16 @@ CDTL2.GUI = LibStub("AceGUI-3.0")
 local _, _, _, tocversion = GetBuildInfo()
 CDTL2.tocversion = tocversion
 
+-- Private event frame to bypass AceEvent's shared frame (AceEvent30Frame).
+-- The shared frame can become tainted by other addons (ActionSounds, AdiBagsEx, etc.),
+-- causing ADDON_ACTION_FORBIDDEN when RegisterEvent is called on it.
+local CDTL2EventFrame = CreateFrame("Frame")
+CDTL2EventFrame:SetScript("OnEvent", function(self, event, ...)
+	if CDTL2[event] then
+		CDTL2[event](CDTL2, ...)
+	end
+end)
+
 -- Cached local reference for secret value checking (performance optimization)
 -- Avoids global lookup + method dispatch on every call in hot loops
 local _issecretvalue = issecretvalue
@@ -2107,27 +2117,24 @@ function CDTL2:OnInitialize()
 end
 
 function CDTL2:OnEnable()
-	-- Defer all event registration to a clean (untainted) execution context.
-	-- OnEnable can run in a tainted context when triggered by Blizzard's
-	-- LoadAddOn (e.g. RaidFrame_LoadUI), causing ADDON_ACTION_FORBIDDEN.
-	C_Timer.After(0, function()
-		self:RegisterEvent("PLAYER_ENTERING_WORLD")
-		self:RegisterEvent("GROUP_JOINED")
-		self:RegisterEvent("GROUP_LEFT")
+	-- Register events on our private frame to avoid AceEvent's shared frame
+	-- which can be tainted by other addons causing ADDON_ACTION_FORBIDDEN.
+	CDTL2EventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+	CDTL2EventFrame:RegisterEvent("GROUP_JOINED")
+	CDTL2EventFrame:RegisterEvent("GROUP_LEFT")
 
-		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		self:RegisterEvent("SPELL_UPDATE_CHARGES")
-		self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-		self:RegisterEvent("ITEM_LOCK_CHANGED")
-		self:RegisterEvent("PLAYER_REGEN_DISABLED")
-		self:RegisterEvent("PLAYER_REGEN_ENABLED")
-		self:RegisterEvent("UNIT_POWER_FREQUENT")
-		self:RegisterEvent("UNIT_POWER_UPDATE")
-		self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-		if CDTL2.tocversion < 20000 then
-			self:RegisterEvent("RUNE_UPDATED")
-		end
-	end)
+	CDTL2EventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	CDTL2EventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
+	CDTL2EventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+	CDTL2EventFrame:RegisterEvent("ITEM_LOCK_CHANGED")
+	CDTL2EventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+	CDTL2EventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+	CDTL2EventFrame:RegisterEvent("UNIT_POWER_FREQUENT")
+	CDTL2EventFrame:RegisterEvent("UNIT_POWER_UPDATE")
+	CDTL2EventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+	if CDTL2.tocversion < 20000 then
+		CDTL2EventFrame:RegisterEvent("RUNE_UPDATED")
+	end
 
 	CDTL2:Cleanup()
 
@@ -2168,7 +2175,7 @@ function CDTL2:OnEnable()
 		CDTL2:ScanCurrentCooldowns(CDTL2.player["class"], CDTL2.player["race"])
 
 		if CDTL2.player["class"] == "DEATHKNIGHT" then
-			self:RegisterEvent("RUNE_POWER_UPDATE")
+			CDTL2EventFrame:RegisterEvent("RUNE_POWER_UPDATE")
 		end
 		
 		CDTL2:RefreshLane(1)
