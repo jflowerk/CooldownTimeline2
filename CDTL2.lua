@@ -2106,28 +2106,28 @@ function CDTL2:OnInitialize()
     self:RegisterChatCommand("cooldowntimeline2", "ChatCommand")
 end
 
-function CDTL2:OnEnable()	
-	self:RegisterEvent("PLAYER_ENTERING_WORLD")
-	self:RegisterEvent("GROUP_JOINED")
-	self:RegisterEvent("GROUP_LEFT")
-	--self:RegisterEvent("PLAYER_TALENT_UPDATE")
-	--self:RegisterEvent("SPELLS_CHANGED")
-	--self:RegisterEvent("ENCOUNTER_END")
+function CDTL2:OnEnable()
+	-- Defer all event registration to a clean (untainted) execution context.
+	-- OnEnable can run in a tainted context when triggered by Blizzard's
+	-- LoadAddOn (e.g. RaidFrame_LoadUI), causing ADDON_ACTION_FORBIDDEN.
+	C_Timer.After(0, function()
+		self:RegisterEvent("PLAYER_ENTERING_WORLD")
+		self:RegisterEvent("GROUP_JOINED")
+		self:RegisterEvent("GROUP_LEFT")
 
-	-- Pre-register all detection events during safe loading context
-	-- to avoid ADDON_ACTION_FORBIDDEN from tainted execution paths
-	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	self:RegisterEvent("SPELL_UPDATE_CHARGES")
-	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-	self:RegisterEvent("ITEM_LOCK_CHANGED")
-	self:RegisterEvent("PLAYER_REGEN_DISABLED")
-	self:RegisterEvent("PLAYER_REGEN_ENABLED")
-	self:RegisterEvent("UNIT_POWER_FREQUENT")
-	self:RegisterEvent("UNIT_POWER_UPDATE")
-	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-	if CDTL2.tocversion < 20000 then
-		self:RegisterEvent("RUNE_UPDATED")
-	end
+		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		self:RegisterEvent("SPELL_UPDATE_CHARGES")
+		self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+		self:RegisterEvent("ITEM_LOCK_CHANGED")
+		self:RegisterEvent("PLAYER_REGEN_DISABLED")
+		self:RegisterEvent("PLAYER_REGEN_ENABLED")
+		self:RegisterEvent("UNIT_POWER_FREQUENT")
+		self:RegisterEvent("UNIT_POWER_UPDATE")
+		self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+		if CDTL2.tocversion < 20000 then
+			self:RegisterEvent("RUNE_UPDATED")
+		end
+	end)
 
 	CDTL2:Cleanup()
 
