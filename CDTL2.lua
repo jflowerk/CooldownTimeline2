@@ -20,7 +20,7 @@ CDTL2.tocversion = tocversion
 local CDTL2EventFrame = CreateFrame("Frame")
 CDTL2EventFrame:SetScript("OnEvent", function(self, event, ...)
 	if CDTL2[event] then
-		CDTL2[event](CDTL2, ...)
+		CDTL2[event](CDTL2, event, ...)
 	end
 end)
 
@@ -2117,24 +2117,27 @@ function CDTL2:OnInitialize()
 end
 
 function CDTL2:OnEnable()
-	-- Register events on our private frame to avoid AceEvent's shared frame
-	-- which can be tainted by other addons causing ADDON_ACTION_FORBIDDEN.
-	CDTL2EventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-	CDTL2EventFrame:RegisterEvent("GROUP_JOINED")
-	CDTL2EventFrame:RegisterEvent("GROUP_LEFT")
+	-- Defer event registration to escape tainted execution context.
+	-- OnEnable can be called from Blizzard's LoadAddOn (e.g. RaidFrame_LoadUI)
+	-- which runs in a protected context that blocks even private frame RegisterEvent.
+	C_Timer.After(0, function()
+		CDTL2EventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+		CDTL2EventFrame:RegisterEvent("GROUP_JOINED")
+		CDTL2EventFrame:RegisterEvent("GROUP_LEFT")
 
-	CDTL2EventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	CDTL2EventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
-	CDTL2EventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-	CDTL2EventFrame:RegisterEvent("ITEM_LOCK_CHANGED")
-	CDTL2EventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
-	CDTL2EventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-	CDTL2EventFrame:RegisterEvent("UNIT_POWER_FREQUENT")
-	CDTL2EventFrame:RegisterEvent("UNIT_POWER_UPDATE")
-	CDTL2EventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-	if CDTL2.tocversion < 20000 then
-		CDTL2EventFrame:RegisterEvent("RUNE_UPDATED")
-	end
+		CDTL2EventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		CDTL2EventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
+		CDTL2EventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+		CDTL2EventFrame:RegisterEvent("ITEM_LOCK_CHANGED")
+		CDTL2EventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+		CDTL2EventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+		CDTL2EventFrame:RegisterEvent("UNIT_POWER_FREQUENT")
+		CDTL2EventFrame:RegisterEvent("UNIT_POWER_UPDATE")
+		CDTL2EventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+		if CDTL2.tocversion < 20000 then
+			CDTL2EventFrame:RegisterEvent("RUNE_UPDATED")
+		end
+	end)
 
 	CDTL2:Cleanup()
 
